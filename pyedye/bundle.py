@@ -21,8 +21,19 @@ class bundle(object):
         
     def compute_PE(self):
         tmp = np.matmul(self.hessian,self.positions.T)
-        print('tmp',tmp)
         tmp2 = self.positions * tmp.T
-        print('tmp2',tmp2)
         self.PEs = np.sum(tmp2,axis=1)
-        
+
+    def compute_KE(self):
+        tmp = self.momenta * self.momenta
+        inv2m = 1.0 / (2.0 * self.masses)
+        for i in range(self.numtraj):
+            tmp2 = tmp[i,:] * inv2m
+            self.KEs[i] = np.sum(tmp2)
+            
+    def compute_energies(self):
+        self.compute_KE()
+        self.compute_PE()
+        self.energies = self.PEs + self.KEs
+
+    
