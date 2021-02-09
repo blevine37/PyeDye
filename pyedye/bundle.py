@@ -18,10 +18,14 @@ class bundle(object):
         self.energies = np.zeros(self.numtraj)
         self.PEs = np.zeros(self.numtraj)
         self.KEs = np.zeros(self.numtraj)
+        self.gradients = np.zeros((self.numtraj,self.numdims))
+
+    def compute_gradients(self):
+        self.gradients = 2.0*np.matmul(self.positions,self.hessian)
         
     def compute_PE(self):
-        tmp = np.matmul(self.hessian,self.positions.T)
-        tmp2 = self.positions * tmp.T
+        tmp = np.matmul(self.positions,self.hessian)
+        tmp2 = self.positions * tmp
         self.PEs = np.sum(tmp2,axis=1)
 
     def compute_KE(self):
@@ -36,4 +40,26 @@ class bundle(object):
         self.compute_PE()
         self.energies = self.PEs + self.KEs
 
+    def propagate(self):
+        while self.time < self.endtime:
+            posdot = np.zeros((self.numtraj,self.numdims))
+            invm = 1.0 / self.masses
+            hdt = 0.5 * self.timestep
+            
+            for i in range(self.numtraj):
+                posdot[i,:] = self.momenta[i,:] * invm
+
+            self.positions += hdt * posdot
+
+            self.compute_gradients()
+
+            self.momenta -= self.timestep * self.gradients
+
+            for i in range(self.numtraj):
+                posdot[i,:] = self.momenta[i,:] * invm
+
+            self.positions += hdt * posdot
+
+            self.time += self.timestep
+        
     
