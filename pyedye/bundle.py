@@ -10,12 +10,14 @@ class bundle(object):
         self.numtraj = numtraj
         self.positions = np.zeros((self.numtraj,self.numdims))
         self.momenta = np.zeros((self.numtraj,self.numdims))
-        self.hessian = np.zeros((self.numdims,self.numdims))
+        self.s1hessian = np.zeros((self.numdims,self.numdims))
+        self.s0hessian = np.zeros((self.numdims,self.numdims))
         self.masses = np.ones(self.numdims)
         self.endtime = 0.0
         self.timestep = 0.0
-        
-        self.energies = np.zeros(self.numtraj)
+
+        self.hamiltonians = np.zeros((self.numtraj,2,2))
+        #self.energies = np.zeros(self.numtraj)
         self.PEs = np.zeros(self.numtraj)
         self.KEs = np.zeros(self.numtraj)
         self.gradients = np.zeros((self.numtraj,self.numdims))
@@ -23,7 +25,7 @@ class bundle(object):
     def compute_gradients(self):
         self.gradients = 2.0*np.matmul(self.positions,self.hessian)
         
-    def compute_PE(self):
+    def compute_s1PE(self):
         tmp = np.matmul(self.positions,self.hessian)
         tmp2 = self.positions * tmp
         self.PEs = np.sum(tmp2,axis=1)
